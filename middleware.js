@@ -22,6 +22,7 @@ let checkToken = (req, res, next) => {
                     message: 'Token is not valid'
                 });
             } else {
+                // saving the token so it could be used for other routes
                 req.decoded = decoded;
                 next();
             }
