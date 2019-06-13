@@ -3,6 +3,11 @@ let config = require('./config');
 
 let checkToken = (req, res, next) => {
     let token = req.headers['x-access-token'] || req.headers['authorization'];
+    if (token === undefined) return res.json({
+        success: false,
+        message: "No token provided"
+    });
+
 
     if (token.startsWith('Bearer ') == null) {
         return res.json({

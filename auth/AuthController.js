@@ -4,6 +4,7 @@ var bodyParser = require('body-parser');
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 var User = require('../user/User');
+var uuid = require('uuid');
 
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
@@ -28,10 +29,12 @@ router.post('/register', function(req, res) {
 
         let hashedPassword = bcrypt.hashSync(req.body.password, 8);
         // no user exists -> create a new one
+        let userUUID = uuid.v1();
         User.create({
                 name : req.body.name,
                 email : req.body.email,
-                password : hashedPassword
+                password : hashedPassword,
+                uuid: userUUID
             },
             function (err, user) {
                 if (err) return errorHandler.userNotCreated(res);
@@ -42,7 +45,12 @@ router.post('/register', function(req, res) {
                     expiresIn: 86400 // expires in 24 hours
                 });
 
-                res.status(200).send({ auth: true, token: token, email: req.body.email });
+                res.status(200).send({
+                    auth: true,
+                    token: token,
+                    email: req.body.email,
+                    uuid: userUUID
+                });
             });
         
     });
@@ -72,9 +80,16 @@ router.post('/login', function (req, res) {
         var token = jwt.sign({ id: user._id }, config.secret, {
             expiresIn: 86400 // expires in 24 hours
         });
+        //saving token in cookies
+        res.cookie("token", token);
 
         // return the information including token as JSON
-        res.status(200).send({ auth: true, token: token });
+        res.status(200).send({
+            auth: true,
+            token: token,
+            email: user.email,
+            uuid: user.uuid
+        });
 
     });
 
@@ -107,6 +122,20 @@ router.get('/getUser', middleware.checkToken, function (req, res) {
 
         res.status(200).send(user);
 
+    });
+});
+
+/*
+    --------------------------------------
+    API Endpoint for validating user token
+    --------------------------------------
+*/
+
+router.get('/validateToken', middleware.checkToken, function (req, res) {
+
+    res.status(200).send({
+        success: true,
+        message: "Token is valid"
     });
 });
 

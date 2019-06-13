@@ -1,4 +1,4 @@
 module.exports = {
     'secret': 'supersecret',
-    'connectionString': 'mongodb://127.0.0.1:27017'
+    'connectionString': 'mongodb://mongo:27017'
 };
